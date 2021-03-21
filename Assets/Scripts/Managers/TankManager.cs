@@ -1,42 +1,65 @@
 ﻿using System;
 using UnityEngine;
+using Mirror;
 
 [Serializable]
-public class TankManager
+public class TankManager : NetworkBehaviour
 {
-    public Color m_PlayerColor;            
-    public Transform m_SpawnPoint;         
-    [HideInInspector] public int m_PlayerNumber;             
-    [HideInInspector] public string m_ColoredPlayerText;
-    [HideInInspector] public GameObject m_Instance;          
-    [HideInInspector] public int m_Wins;                     
+    [SyncVar(hook = nameof(SyncPlayerColor))] private Color PlayerColor;
+    //[SyncVar(hook = nameof(SyncSpawnPoint))]
+    public Transform m_SpawnPoint;
 
+    [HideInInspector] [SyncVar] public int m_PlayerNumber;
+    [HideInInspector] [SyncVar] public string m_ColoredPlayerText;
+    [HideInInspector] [SyncVar(hook = nameof(SyncWins))] private int m_Wins;
 
-    private TankMovement m_Movement;       
+    [SyncVar(hook = nameof(SyncIsReady))] private bool m_isReady;
+
+    private TankMovement m_Movement;
     private TankShooting m_Shooting;
     private GameObject m_CanvasGameObject;
 
-
-    public void Setup()
+    public int numberOfWins
     {
-        m_Movement = m_Instance.GetComponent<TankMovement>();
-        m_Shooting = m_Instance.GetComponent<TankShooting>();
-        m_CanvasGameObject = m_Instance.GetComponentInChildren<Canvas>().gameObject;
-
-        m_Movement.m_PlayerNumber = m_PlayerNumber;
-        m_Shooting.m_PlayerNumber = m_PlayerNumber;
-
-        m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(m_PlayerColor) + ">PLAYER " + m_PlayerNumber + "</color>";
-
-        MeshRenderer[] renderers = m_Instance.GetComponentsInChildren<MeshRenderer>();
-
-        for (int i = 0; i < renderers.Length; i++)
-        {
-            renderers[i].material.color = m_PlayerColor;
-        }
+        get { return m_Wins; }
+        set { SyncWins(m_Wins, value); }
     }
 
+    public bool isReady
+    {
+        get { return m_isReady; }
+        set { CmdIsReady(value); }
+    }
 
+    public override void OnStartServer()
+    {
+        Setup();
+        base.OnStartServer();
+    }
+
+    public override void OnStartClient()
+    {
+        Setup();
+        base.OnStartClient();
+    }
+
+    private void Setup()
+    {
+        SyncPlayerColor(PlayerColor, PlayerColor);
+        m_isReady = false;
+        m_Movement = gameObject.GetComponent<TankMovement>();
+        m_Shooting = gameObject.GetComponent<TankShooting>();
+        m_CanvasGameObject = gameObject.GetComponentInChildren<Canvas>().gameObject;
+        m_Movement.m_PlayerNumber = 1;
+        m_Shooting.m_PlayerNumber = 1;
+        m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">PLAYER " + m_PlayerNumber + "</color>";
+        m_SpawnPoint = GameObject.Find("SpawnPoint" + m_PlayerNumber).GetComponent<Transform>();
+    }
+
+    public void Setup(Transform spawnPoint, Color color)
+    {
+        SyncPlayerColor(PlayerColor, color);
+    }
     public void DisableControl()
     {
         m_Movement.enabled = false;
@@ -54,13 +77,47 @@ public class TankManager
         m_CanvasGameObject.SetActive(true);
     }
 
-
     public void Reset()
     {
-        m_Instance.transform.position = m_SpawnPoint.position;
-        m_Instance.transform.rotation = m_SpawnPoint.rotation;
+        gameObject.transform.position = m_SpawnPoint.position;
+        gameObject.transform.rotation = m_SpawnPoint.rotation;
 
-        m_Instance.SetActive(false);
-        m_Instance.SetActive(true);
+        gameObject.SetActive(false);
+        gameObject.SetActive(true);
+    }
+
+    //Server and sync methods
+    private void SyncPlayerColor(Color OldValue, Color NewValue)
+    {
+        PlayerColor = NewValue;
+        MeshRenderer[] renderers = gameObject.GetComponentsInChildren<MeshRenderer>();
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].material.color = PlayerColor;
+        }
+    }
+
+    private void SyncIsReady(bool OldValue, bool NewValue)
+    {
+        m_isReady = NewValue;
+    }
+
+    private void SyncWins(int OldValue, int NewValue)
+    {
+        m_Wins = NewValue;
+    }
+
+
+    [Command]
+    private void CmdIsReady(bool value)
+    {
+        SyncIsReady(m_isReady, value);
+    }
+
+    [Command]
+    private void CmdUpdateNumberWinner(int value)
+    {
+        SyncWins(m_Wins, value);
     }
 }

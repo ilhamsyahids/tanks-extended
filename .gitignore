@@ -34,5 +34,6 @@
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
 
-# VS Code
+# VS
 .vscode
+.vs

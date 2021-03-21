@@ -1,61 +1,114 @@
-﻿using UnityEngine;
+﻿using Patterns;
+using UnityEngine;
 using System.Collections;
-//using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Mirror;
 
 public class GameManager : MonoBehaviour
 {
-    public int m_NumRoundsToWin = 5;        
-    public float m_StartDelay = 3f;         
-    public float m_EndDelay = 3f;           
-    public CameraControl m_CameraControl;   
-    public Text m_MessageText;              
-    public GameObject m_TankPrefab;         
-    public TankManager[] m_Tanks;           
+    public int m_NumRoundsToWin = 2;
+    public float m_StartDelay = 3f;
+    public float m_EndDelay = 3f;
+    public int m_MaxNumPlayers = 2;
+    public int m_MinNumPlayers = 2;
+    public CameraControl m_CameraControl;
+    public Text m_MessageText;
+    public GameObject m_ButtonIsReady;
+    public GameObject m_ButtonDisconnect;
+    public GameObject m_TankPrefab;
+    public List<GameObject> m_Tanks;
 
 
-    private int m_RoundNumber;              
-    private WaitForSeconds m_StartWait;     
-    private WaitForSeconds m_EndWait;       
-    private TankManager m_RoundWinner;
-    private TankManager m_GameWinner;       
+    public TankManager LocalPlayer;
+    public int m_RoundNumber;
+    private WaitForSeconds m_StartWait;
+    private WaitForSeconds m_EndWait;
+    public TankManager m_RoundWinner;
+    public TankManager m_GameWinner;
 
-    private void Start()
+    public bool GameStart;
+    private FSM m_Fsm = new FSM();
+    public GameObject m_ConnectServerHUD;
+    public InputField m_ConnectServerHUDAddress;
+
+
+    public void Start()
     {
         m_StartWait = new WaitForSeconds(m_StartDelay);
         m_EndWait = new WaitForSeconds(m_EndDelay);
 
-        SpawnAllTanks();
-        SetCameraTargets();
+        m_Tanks = new List<GameObject>();
 
-        StartCoroutine(GameLoop());
+        GameStart = false;
+
+        m_Fsm.Add((int)GameManagerStateEnum.DISCONNECT, new DisconnectState(m_Fsm, this));
+        m_Fsm.Add((int)GameManagerStateEnum.WAITING_PLAYER, new WaitingPlayerState(m_Fsm, this));
+        m_Fsm.Add((int)GameManagerStateEnum.NOT_READY, new NotReadyState(m_Fsm, this));
+        m_Fsm.Add((int)GameManagerStateEnum.WAITING_ALL_READY, new WaitingAllReadyState(m_Fsm, this));
+        m_Fsm.Add((int)GameManagerStateEnum.PLAYING, new PlayingState(m_Fsm, this));
+        m_Fsm.Add((int)GameManagerStateEnum.FINISH_PLAY, new FinishPlayState(m_Fsm, this));
+        m_Fsm.SetCurrentState(m_Fsm.GetState((int)GameManagerStateEnum.DISCONNECT));
     }
 
 
-    private void SpawnAllTanks()
+    public void Update()
     {
-        for (int i = 0; i < m_Tanks.Length; i++)
+        m_Fsm.Update();
+        SetCameraTargets();
+    }
+
+    public void ResetCamera()
+    {
+        SearchTanks();
+        SetCameraTargets();
+    }
+
+    public void SearchTanks()
+    {
+        m_Tanks.Clear();
+        foreach (KeyValuePair<uint, NetworkIdentity> kvp in NetworkIdentity.spawned)
         {
-            m_Tanks[i].m_Instance =
-                Instantiate(m_TankPrefab, m_Tanks[i].m_SpawnPoint.position, m_Tanks[i].m_SpawnPoint.rotation) as GameObject;
-            m_Tanks[i].m_PlayerNumber = i + 1;
-            m_Tanks[i].Setup();
+            GameObject comp = kvp.Value.gameObject;
+            if (comp != null && !m_Tanks.Contains(comp) && comp.GetComponent<TankManager>())
+            {
+                m_Tanks.Add(comp);
+            }
         }
     }
 
+    public void matchStart()
+    {
+        SetCameraTargets();
+        StartCoroutine(GameLoop());
+    }
+
+    void FindLocalTank()
+    {
+        if (ClientScene.localPlayer == null)
+            return;
+
+        LocalPlayer = ClientScene.localPlayer.gameObject.GetComponent<TankManager>();
+        LocalPlayer.DisableControl();
+    }
 
     private void SetCameraTargets()
     {
-        Transform[] targets = new Transform[m_Tanks.Length];
+        Transform[] targets = new Transform[m_Tanks.Count];
 
         for (int i = 0; i < targets.Length; i++)
         {
-            targets[i] = m_Tanks[i].m_Instance.transform;
+            targets[i] = m_Tanks[i].transform;
         }
 
         m_CameraControl.m_Targets = targets;
     }
 
+    public void StopGameLoop()
+    {
+        StopAllCoroutines();
+    }
 
     private IEnumerator GameLoop()
     {
@@ -65,7 +118,7 @@ public class GameManager : MonoBehaviour
 
         if (m_GameWinner != null)
         {
-            // SceneManager.LoadScene(0);
+            yield return null;
         }
         else
         {
@@ -77,13 +130,11 @@ public class GameManager : MonoBehaviour
     private IEnumerator RoundStarting()
     {
         ResetAllTanks();
-        DisableTankControl ();
-
+        DisableTankControl();
         m_CameraControl.SetStartPositionAndSize();
 
         m_RoundNumber++;
         m_MessageText.text = "ROUND " + m_RoundNumber;
-
         yield return m_StartWait;
     }
 
@@ -103,14 +154,15 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator RoundEnding()
     {
-        DisableTankControl ();
+        DisableTankControl();
 
         m_RoundWinner = null;
-
         m_RoundWinner = GetRoundWinner();
 
-        if (m_RoundWinner != null) {
-            m_RoundWinner.m_Wins++;
+        if (m_RoundWinner != null)
+        {
+            if (NetworkManagerMode.ServerOnly == NetworkManager.singleton.mode || LocalPlayer.isServer)
+                m_RoundWinner.numberOfWins += 1;
         }
 
         m_GameWinner = GetGameWinner();
@@ -126,9 +178,9 @@ public class GameManager : MonoBehaviour
     {
         int numTanksLeft = 0;
 
-        for (int i = 0; i < m_Tanks.Length; i++)
+        for (int i = 0; i < m_Tanks.Count; i++)
         {
-            if (m_Tanks[i].m_Instance.activeSelf)
+            if (m_Tanks[i].activeSelf)
                 numTanksLeft++;
         }
 
@@ -137,10 +189,10 @@ public class GameManager : MonoBehaviour
 
     private TankManager GetRoundWinner()
     {
-        for (int i = 0; i < m_Tanks.Length; i++)
+        for (int i = 0; i < m_Tanks.Count; i++)
         {
-            if (m_Tanks[i].m_Instance.activeSelf)
-                return m_Tanks[i];
+            if (m_Tanks[i].activeSelf)
+                return m_Tanks[i].GetComponent<TankManager>();
         }
 
         return null;
@@ -149,10 +201,10 @@ public class GameManager : MonoBehaviour
 
     private TankManager GetGameWinner()
     {
-        for (int i = 0; i < m_Tanks.Length; i++)
+        for (int i = 0; i < m_Tanks.Count; i++)
         {
-            if (m_Tanks[i].m_Wins == m_NumRoundsToWin)
-                return m_Tanks[i];
+            if (m_Tanks[i].GetComponent<TankManager>().numberOfWins == m_NumRoundsToWin)
+                return m_Tanks[i].GetComponent<TankManager>();
         }
 
         return null;
@@ -168,40 +220,71 @@ public class GameManager : MonoBehaviour
 
         message += "\n\n\n\n";
 
-        for (int i = 0; i < m_Tanks.Length; i++)
+        for (int i = 0; i < m_Tanks.Count; i++)
         {
-            message += m_Tanks[i].m_ColoredPlayerText + ": " + m_Tanks[i].m_Wins + " WINS\n";
+            message += m_Tanks[i].GetComponent<TankManager>().m_ColoredPlayerText + ": " + m_Tanks[i].GetComponent<TankManager>().numberOfWins + " WINS\n";
         }
-
-        if (m_GameWinner != null)
-            message = m_GameWinner.m_ColoredPlayerText + " WINS THE GAME!";
 
         return message;
     }
 
     private void ResetAllTanks()
     {
-        for (int i = 0; i < m_Tanks.Length; i++)
+        for (int i = 0; i < m_Tanks.Count; i++)
         {
-            m_Tanks[i].Reset();
+            m_Tanks[i].GetComponent<TankManager>().Reset();
         }
     }
 
 
     private void EnableTankControl()
     {
-        for (int i = 0; i < m_Tanks.Length; i++)
+        for (int i = 0; i < m_Tanks.Count; i++)
         {
-            m_Tanks[i].EnableControl();
+            m_Tanks[i].GetComponent<TankManager>().EnableControl();
         }
     }
 
 
     private void DisableTankControl()
     {
-        for (int i = 0; i < m_Tanks.Length; i++)
+        for (int i = 0; i < m_Tanks.Count; i++)
         {
-            m_Tanks[i].DisableControl();
+            m_Tanks[i].GetComponent<TankManager>().DisableControl();
         }
+    }
+
+    public void IsReadyButtonAction()
+    {
+        LocalPlayer.isReady = true;
+    }
+
+    public void DisconnectButtonAction()
+    {
+        if (LocalPlayer.isServer)
+        {
+            Debug.Log("StopHost");
+            NetworkManager.singleton.StopHost();
+        }
+        else
+        {
+            NetworkManager.singleton.StopClient();
+        }
+    }
+
+    public void SetConnectHUD(bool state)
+    {
+        m_ConnectServerHUD.SetActive(state);
+    }
+
+    public void CreateServerButtonAction()
+    {
+        NetworkManager.singleton.StartHost();
+    }
+
+    public void ConnectServerButtonAction()
+    {
+        NetworkManager.singleton.networkAddress = m_ConnectServerHUDAddress.text;
+        NetworkManager.singleton.StartClient();
     }
 }

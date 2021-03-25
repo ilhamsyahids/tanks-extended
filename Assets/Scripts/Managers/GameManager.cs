@@ -19,6 +19,9 @@ public class GameManager : MonoBehaviour
     public GameObject m_ButtonDisconnect;
     public GameObject m_TankPrefab;
     public List<GameObject> m_Tanks;
+    public string m_PlayerOneName;              // The name of main player and it is passed from PrestartMenuScript
+    public string m_MapSelected;                // The map of main player and it is passed from PrestartMenuScript
+    public string m_PlayerOneWeapon;            // The weapon of main player and it is passed from PrestartMenuScript
 
 
     public TankManager LocalPlayer;
@@ -36,6 +39,10 @@ public class GameManager : MonoBehaviour
 
     public void Start()
     {
+        m_PlayerOneWeapon = PlayerNameHandler.weapon;
+        m_MapSelected = PlayerNameHandler.map;
+        m_PlayerOneName = PlayerNameHandler.playerName;
+
         m_StartWait = new WaitForSeconds(m_StartDelay);
         m_EndWait = new WaitForSeconds(m_EndDelay);
 

@@ -14,8 +14,11 @@ namespace Complete
         public Text m_MessageText;                  // Reference to the overlay Text to display winning text, etc.
         public GameObject m_TankPrefab;             // Reference to the prefab the players will control.
         public TankManager[] m_Tanks;               // A collection of managers for enabling and disabling different aspects of the tanks.
+        public string m_PlayerOneName;              // The name of main player and it is passed from PrestartMenuScript
+        public string m_MapSelected;                // The map of main player and it is passed from PrestartMenuScript
+        public string m_PlayerOneWeapon;            // The weapon of main player and it is passed from PrestartMenuScript
 
-        
+
         private int m_RoundNumber;                  // Which round the game is currently on.
         private WaitForSeconds m_StartWait;         // Used to have a delay whilst the round starts.
         private WaitForSeconds m_EndWait;           // Used to have a delay whilst the round or game ends.
@@ -29,6 +32,9 @@ namespace Complete
             m_StartWait = new WaitForSeconds (m_StartDelay);
             m_EndWait = new WaitForSeconds (m_EndDelay);
 
+            m_PlayerOneWeapon = PlayerNameHandler.weapon;
+            m_MapSelected = PlayerNameHandler.map;
+            m_PlayerOneName = PlayerNameHandler.playerName;
             SpawnAllTanks();
             SetCameraTargets();
 
@@ -46,6 +52,10 @@ namespace Complete
                 m_Tanks[i].m_Instance =
                     Instantiate(m_TankPrefab, m_Tanks[i].m_SpawnPoint.position, m_Tanks[i].m_SpawnPoint.rotation) as GameObject;
                 m_Tanks[i].m_PlayerNumber = i + 1;
+                if (i == 0)
+                {
+                    m_Tanks[i].m_PlayerName = m_PlayerOneName;
+                }
                 m_Tanks[i].Setup();
             }
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Mirror;
 
 [Serializable]
@@ -9,6 +10,7 @@ public class TankManager : NetworkBehaviour
     //[SyncVar(hook = nameof(SyncSpawnPoint))]
     public Transform m_SpawnPoint;
 
+    [HideInInspector] [SyncVar] public string m_PlayerName;
     [HideInInspector] [SyncVar] public int m_PlayerNumber;
     [HideInInspector] [SyncVar] public string m_ColoredPlayerText;
     [HideInInspector] [SyncVar(hook = nameof(SyncWins))] private int m_Wins;
@@ -45,6 +47,7 @@ public class TankManager : NetworkBehaviour
 
     private void Setup()
     {
+        m_PlayerName = PlayerNameHandler.playerName;
         SyncPlayerColor(PlayerColor, PlayerColor);
         m_isReady = false;
         m_Movement = gameObject.GetComponent<TankMovement>();
@@ -52,7 +55,14 @@ public class TankManager : NetworkBehaviour
         m_CanvasGameObject = gameObject.GetComponentInChildren<Canvas>().gameObject;
         m_Movement.m_PlayerNumber = 1;
         m_Shooting.m_PlayerNumber = 1;
-        m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">PLAYER " + m_PlayerNumber + "</color>";
+        if (m_PlayerNumber == 1)
+        {
+            m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">" + m_PlayerName + "</color>";
+        }
+        else
+        {
+            m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">PLAYER " + m_PlayerNumber + "</color>";
+        }
         m_SpawnPoint = GameObject.Find("SpawnPoint" + m_PlayerNumber).GetComponent<Transform>();
     }
 

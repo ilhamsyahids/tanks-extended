@@ -146,6 +146,7 @@ namespace Complete
         {
             // Stop tanks from moving.
             DisableTankControl ();
+            RemoveNPC();
 
             // Clear the winner from the previous round.
             m_RoundWinner = null;
@@ -166,6 +167,15 @@ namespace Complete
 
             // Wait for the specified length of time until yielding control back to the game loop.
             yield return m_EndWait;
+        }
+
+        private void RemoveNPC()
+        {
+            EnemyManager[] m_Enemies = FindObjectsOfType<EnemyManager>();
+            for (int i = 0; i < m_Enemies.Length; i++)
+            {
+                Destroy(m_Enemies[i].gameObject);
+            }
         }
 
 

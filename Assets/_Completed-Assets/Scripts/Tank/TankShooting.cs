@@ -5,9 +5,11 @@ namespace Complete
 {
     public class TankShooting : MonoBehaviour
     {
-        public int m_PlayerNumber = 1;              // Used to identify the different players.
+        public int m_PlayerNumber;              // Used to identify the different players.
         public Rigidbody m_Shell;                   // Prefab of the shell.
+        public EnemyManager m_NPC;                     // Prefab of the NPC
         public Transform m_FireTransform;           // A child of the tank where the shells are spawned.
+        public Transform m_SpawnFriendTransform;
         public Slider m_AimSlider;                  // A child of the tank that displays the current launch force.
         public AudioSource m_ShootingAudio;         // Reference to the audio source used to play the shooting audio. NB: different to the movement audio source.
         public AudioClip m_ChargingClip;            // Audio that plays when each shot is charging up.
@@ -16,7 +18,7 @@ namespace Complete
         public float m_MaxLaunchForce = 30f;        // The force given to the shell if the fire button is held for the max charge time.
         public float m_MaxChargeTime = 0.75f;       // How long the shell can charge for before it is fired at max force.
 
-
+        private Complete.OfflineGameManager gameManager;
         private string m_FireButton;                // The input axis that is used for launching shells.
         private float m_CurrentLaunchForce;         // The force that will be given to the shell when the fire button is released.
         private float m_ChargeSpeed;                // How fast the launch force increases, based on the max charge time.
@@ -52,6 +54,7 @@ namespace Complete
                 // ... use the max force and launch the shell.
                 m_CurrentLaunchForce = m_MaxLaunchForce;
                 Fire ();
+                SpawnNPC();
             }
             // Otherwise, if the fire button has just started being pressed...
             else if (Input.GetButtonDown (m_FireButton))
@@ -77,6 +80,7 @@ namespace Complete
             {
                 // ... launch the shell.
                 Fire ();
+                SpawnNPC();
             }
         }
 
@@ -96,6 +100,27 @@ namespace Complete
             // Change the clip to the firing clip and play it.
             m_ShootingAudio.clip = m_FireClip;
             m_ShootingAudio.Play ();
+
+            // Reset the launch force.  This is a precaution in case of missing button events.
+            m_CurrentLaunchForce = m_MinLaunchForce;
+        }
+
+        private void SpawnNPC()
+        {
+            //
+            // Set the fired flag so only Fire is only called once.
+            m_Fired = true;
+
+            // Create an instance of the shell and store a reference to it's rigidbody.
+            EnemyManager npcInstance =
+                Instantiate(m_NPC, m_SpawnFriendTransform.position, m_SpawnFriendTransform.rotation) as EnemyManager;
+            npcInstance.m_MasterNumber = m_PlayerNumber;
+            gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<Complete.OfflineGameManager>();
+            gameManager.m_NPCs.Add(npcInstance);
+
+            // Change the clip to the firing clip and play it.
+            m_ShootingAudio.clip = m_FireClip;
+            m_ShootingAudio.Play();
 
             // Reset the launch force.  This is a precaution in case of missing button events.
             m_CurrentLaunchForce = m_MinLaunchForce;

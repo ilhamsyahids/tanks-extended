@@ -47,7 +47,6 @@ public class TankManager : NetworkBehaviour
 
     private void Setup()
     {
-        m_PlayerName = PlayerNameHandler.playerName;
         SyncPlayerColor(PlayerColor, PlayerColor);
         m_isReady = false;
         m_Movement = gameObject.GetComponent<TankMovement>();
@@ -57,6 +56,7 @@ public class TankManager : NetworkBehaviour
         m_Shooting.m_PlayerNumber = 1;
         if (m_PlayerNumber == 1)
         {
+            m_PlayerName = PlayerNameHandler.playerName;
             m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">" + m_PlayerName + "</color>";
         }
         else

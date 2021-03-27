@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
     public GameObject m_ButtonDisconnect;
     public GameObject m_TankPrefab;
     public List<GameObject> m_Tanks;
-    public string m_PlayerOneName;              // The name of main player and it is passed from PrestartMenuScript
+    public string m_PlayerOneName;              // The name of main player and it is pas                                                                                                                                                                                                                                                                sed from PrestartMenuScript
     public string m_MapSelected;                // The map of main player and it is passed from PrestartMenuScript
     public string m_PlayerOneWeapon;            // The weapon of main player and it is passed from PrestartMenuScript
 

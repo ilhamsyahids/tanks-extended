@@ -42,7 +42,8 @@ namespace Complete
         void Update()
         {
             Vector3 targetDestination = FindClosestEnemy();
-            agent.SetDestination(targetDestination);
+            if (agent != null)
+                agent.SetDestination(targetDestination);
             if (gameManager.m_RoundWinner != null)
             {
                 //Destroy(gameObject);

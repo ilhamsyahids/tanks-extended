@@ -20,6 +20,7 @@ class FinishPlayState : State
         m_GameManager.LocalPlayer.DisableControl();
         m_GameManager.m_MessageText.text = m_GameManager.m_GameWinner.m_ColoredPlayerText + " WINS THE GAME!";
         m_GameManager.m_ButtonDisconnect.SetActive(true);
+        m_GameManager.m_ButtonBack.SetActive(true);
         m_GameManager.m_GameWinner = null;
     }
 
@@ -40,6 +41,7 @@ class FinishPlayState : State
     {
         base.Exit();
         m_GameManager.m_ButtonDisconnect.SetActive(false);
+        m_GameManager.m_ButtonBack.SetActive(false);
         Debug.Log("Exit of FinishPlayState");
     }
 }

@@ -36,13 +36,12 @@ namespace Complete
             m_Shooting.m_PlayerNumber = m_PlayerNumber;
 
             // Create a string using the correct color that says 'PLAYER 1' etc based on the tank's color and the player's number.
-            if (m_PlayerNumber == 1)
+            if (!m_PlayerName.Equals(""))
             {
-                m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(m_PlayerColor) + ">" + m_PlayerName + "</color>";
-            }
-            else
+                m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(m_PlayerColor) + "> " + m_PlayerName + "</color>";
+            } else
             {
-                m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(m_PlayerColor) + ">PLAYER " + m_PlayerNumber + "</color>";
+                m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(m_PlayerColor) + "> PLAYER " + m_PlayerNumber + "</color>";
             }
 
             // Get all of the renderers of the tank.

@@ -16,6 +16,7 @@ namespace Complete
         public GameObject m_TankPrefab;             // Reference to the prefab the players will control.
         public Complete.OfflineTankManager[] m_Tanks;// A collection of managers for enabling and disabling different aspects of the tanks.
         public string m_PlayerOneName;              // The name of main player and it is passed from PrestartMenuScript
+        public string m_PlayerTwoName;
         public string m_MapSelected;                // The map of main player and it is passed from PrestartMenuScript
         public string m_PlayerOneWeapon;            // The weapon of main player and it is passed from PrestartMenuScript
         [HideInInspector] public List<EnemyManager> m_NPCs;
@@ -36,7 +37,8 @@ namespace Complete
 
             m_PlayerOneWeapon = PlayerNameHandler.weapon;
             m_MapSelected = PlayerNameHandler.map;
-            m_PlayerOneName = FindObjectOfType<PlayerNameHandler>().playerName;
+            m_PlayerOneName = PlayerNameHandler.playerName;
+            m_PlayerTwoName = PlayerNameHandler.playerName2;
             SpawnAllTanks();
             SetCameraTargets();
 
@@ -57,6 +59,9 @@ namespace Complete
                 if (i == 0)
                 {
                     m_Tanks[i].m_PlayerName = m_PlayerOneName;
+                } else if (i == 1)
+                {
+                    m_Tanks[i].m_PlayerName = m_PlayerTwoName;
                 }
                 m_Tanks[i].Setup();
             }
@@ -287,6 +292,12 @@ namespace Complete
             {
                 m_Tanks[i].DisableControl();
             }
+        }
+
+        public void QuitGame()
+        {
+            Debug.Log("Game Quit");
+            Application.Quit();
         }
     }
 }

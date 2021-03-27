@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     public Text m_MessageText;
     public GameObject m_ButtonIsReady;
     public GameObject m_ButtonDisconnect;
+    public GameObject m_ButtonBack;
     public GameObject m_TankPrefab;
     public List<GameObject> m_Tanks;
     public string m_PlayerOneName;              // The name of main player and it is pas                                                                                                                                                                                                                                                                sed from PrestartMenuScript
@@ -41,7 +42,7 @@ public class GameManager : MonoBehaviour
     {
         m_PlayerOneWeapon = PlayerNameHandler.weapon;
         m_MapSelected = PlayerNameHandler.map;
-        m_PlayerOneName = FindObjectOfType<PlayerNameHandler>().playerName;
+        m_PlayerOneName = PlayerNameHandler.playerName;
 
         m_StartWait = new WaitForSeconds(m_StartDelay);
         m_EndWait = new WaitForSeconds(m_EndDelay);
@@ -264,7 +265,7 @@ public class GameManager : MonoBehaviour
     public void IsReadyButtonAction()
     {
         LocalPlayer.isReady = true;
-        LocalPlayer.playerName = FindObjectOfType<PlayerNameHandler>().playerName;
+        LocalPlayer.playerName = PlayerNameHandler.playerName;
     }
 
     public void DisconnectButtonAction()
@@ -294,5 +295,12 @@ public class GameManager : MonoBehaviour
     {
         NetworkManager.singleton.networkAddress = m_ConnectServerHUDAddress.text;
         NetworkManager.singleton.StartClient();
+    }
+
+    public void QuitGame()
+    {
+        DisconnectButtonAction();
+        Debug.Log("Game Quit");
+        Application.Quit();
     }
 }

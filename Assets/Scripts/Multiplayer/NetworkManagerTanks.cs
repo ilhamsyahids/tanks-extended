@@ -29,7 +29,7 @@ public class NetworkManagerTanks : NetworkManager
 
         player = Instantiate(playerPrefab, m_spawnPoint[numPlayers].position, m_spawnPoint[numPlayers].rotation) as GameObject;
         TankManager tankManager = player.GetComponent<TankManager>();
-        string playerName = FindObjectOfType<PlayerNameHandler>().playerName;
+        string playerName = PlayerNameHandler.playerName;
         tankManager.m_PlayerNumber = numPlayers + 1;
         tankManager.Setup(playerName, Random.ColorHSV(0f, 1f, 0.9f, 1f, 1f, 1f));
         //if (numPlayers == 0)

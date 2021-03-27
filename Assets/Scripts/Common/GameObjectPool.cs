@@ -54,7 +54,7 @@ public class GameObjectPool : MonoBehaviour
         }
     }
 
-    public GameObject GetObject(GameObject prefab)
+    public GameObject GetObject(GameObject prefab, Transform transform)
     {
         int poolKey = prefab.GetInstanceID();
 
@@ -66,6 +66,8 @@ public class GameObjectPool : MonoBehaviour
             {
                 if (!pool[i].gameObject.activeInHierarchy)
                 {
+                    pool[i].transform.position = transform.position;
+                    pool[i].transform.rotation = transform.rotation;
                     return pool[i];
                 }
             }

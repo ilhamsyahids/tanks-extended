@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Prestart-Menu.unity
     guid: 1075060ce30924672a2c3d38cb932d02
   - enabled: 1
+    path: Assets/Scenes/Maps-Dessert.unity
+    guid: a5c2bb2530e6d4475a56ba5d465072d6
+  - enabled: 1
     path: Assets/_Complete-Game.unity
     guid: 37961ba4d27bd46428d20c2ffe403dc3
   m_configObjects: {}

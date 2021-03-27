@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public int m_NumRoundsToWin = 2;
     public float m_StartDelay = 3f;
     public float m_EndDelay = 3f;
-    public int m_MaxNumPlayers = 2;
+    public int m_MaxNumPlayers = 3;
     public int m_MinNumPlayers = 2;
     public CameraControl m_CameraControl;
     public Text m_MessageText;

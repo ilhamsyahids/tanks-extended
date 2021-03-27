@@ -16,7 +16,7 @@ namespace Complete
         private void Start ()
         {
             // If it isn't destroyed by then, destroy the shell after it's lifetime.
-            Destroy (gameObject, m_MaxLifeTime);
+            // Destroy (gameObject, m_MaxLifeTime);
         }
 
 
@@ -68,7 +68,8 @@ namespace Complete
             //Destroy (m_ExplosionParticles.gameObject, mainModule.duration);
 
             // Destroy the shell.
-            Destroy (gameObject);
+            //Destroy (gameObject);
+            gameObject.SetActive(false);
         }
 
 

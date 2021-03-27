@@ -52,18 +52,20 @@ namespace Complete
                 targetHealth.TakeDamage (damage);
             }
 
+            ParticleHolder.instance.playParticle(m_ExplosionParticles, transform.position);
+
             // Unparent the particles from the shell.
-            m_ExplosionParticles.transform.parent = null;
+            //m_ExplosionParticles.transform.parent = null;
 
             // Play the particle system.
-            m_ExplosionParticles.Play();
+            //m_ExplosionParticles.Play();
 
             // Play the explosion sound effect.
             m_ExplosionAudio.Play();
 
             // Once the particles have finished, destroy the gameobject they are on.
-            ParticleSystem.MainModule mainModule = m_ExplosionParticles.main;
-            Destroy (m_ExplosionParticles.gameObject, mainModule.duration);
+            //ParticleSystem.MainModule mainModule = m_ExplosionParticles.main;
+            //Destroy (m_ExplosionParticles.gameObject, mainModule.duration);
 
             // Destroy the shell.
             Destroy (gameObject);

@@ -19,10 +19,12 @@ namespace Complete
         public float m_MaxChargeTime = 0.75f;       // How long the shell can charge for before it is fired at max force.
 
         private Complete.OfflineGameManager gameManager;
+        private string m_SpawnNPCButton;            // The input axis that is used for launching shells.
         private string m_FireButton;                // The input axis that is used for launching shells.
         private float m_CurrentLaunchForce;         // The force that will be given to the shell when the fire button is released.
         private float m_ChargeSpeed;                // How fast the launch force increases, based on the max charge time.
         private bool m_Fired;                       // Whether or not the shell has been launched with this button press.
+        private bool m_NPCSpawned;                       // Whether or not the NPC has been spawned with this button press.
 
 
         private void OnEnable()
@@ -38,6 +40,8 @@ namespace Complete
             // The fire axis is based on the player number.
             m_FireButton = "Fire" + m_PlayerNumber;
 
+            m_SpawnNPCButton = "FireSpawn" + m_PlayerNumber;
+
             // The rate that the launch force charges up is the range of possible forces by the max charge time.
             m_ChargeSpeed = (m_MaxLaunchForce - m_MinLaunchForce) / m_MaxChargeTime;
         }
@@ -45,6 +49,7 @@ namespace Complete
 
         private void Update ()
         {
+            // FIRE SHELL REGION
             // The slider should have a default value of the minimum launch force.
             m_AimSlider.value = m_MinLaunchForce;
 
@@ -54,7 +59,6 @@ namespace Complete
                 // ... use the max force and launch the shell.
                 m_CurrentLaunchForce = m_MaxLaunchForce;
                 Fire ();
-                SpawnNPC();
             }
             // Otherwise, if the fire button has just started being pressed...
             else if (Input.GetButtonDown (m_FireButton))
@@ -80,6 +84,40 @@ namespace Complete
             {
                 // ... launch the shell.
                 Fire ();
+            }
+
+            // NPC SPAWN REGION
+
+            // If the max force has been exceeded and the shell hasn't yet been launched...
+            else if (m_CurrentLaunchForce >= m_MaxLaunchForce && !m_NPCSpawned)
+            {
+                // ... use the max force and launch the shell.
+                m_CurrentLaunchForce = m_MaxLaunchForce;
+                SpawnNPC();
+            }
+            // Otherwise, if the fire button has just started being pressed...
+            else if (Input.GetButtonDown(m_SpawnNPCButton))
+            {
+                // ... reset the fired flag and reset the launch force.
+                m_NPCSpawned = false;
+                m_CurrentLaunchForce = m_MinLaunchForce;
+
+                // Change the clip to the charging clip and start it playing.
+                m_ShootingAudio.clip = m_ChargingClip;
+                m_ShootingAudio.Play();
+            }
+            // Otherwise, if the fire button is being held and the shell hasn't been launched yet...
+            else if (Input.GetButton(m_SpawnNPCButton) && !m_NPCSpawned)
+            {
+                // Increment the launch force and update the slider.
+                m_CurrentLaunchForce += m_ChargeSpeed * Time.deltaTime;
+
+                m_AimSlider.value = m_CurrentLaunchForce;
+            }
+            // Otherwise, if the fire button is released and the shell hasn't been launched yet...
+            else if (Input.GetButtonUp(m_SpawnNPCButton) && !m_NPCSpawned)
+            {
+                // ... launch the shell.
                 SpawnNPC();
             }
         }
@@ -91,17 +129,11 @@ namespace Complete
             m_Fired = true;
 
             // Create an instance of the shell and store a reference to it's rigidbody.
-            //Rigidbody shellInstance =
-            //    Instantiate (m_Shell, m_FireTransform.position, m_FireTransform.rotation) as Rigidbody;
-
-            GameObject shellInstance = GameObjectPool.instance.GetObject(m_Shell.gameObject);
-            shellInstance.SetActive(true);
-
-            shellInstance.transform.position = m_FireTransform.position;
-            shellInstance.transform.rotation = m_FireTransform.rotation;
+            Rigidbody shellInstance =
+                Instantiate (m_Shell, m_FireTransform.position, m_FireTransform.rotation) as Rigidbody;
 
             // Set the shell's velocity to the launch force in the fire position's forward direction.
-            shellInstance.GetComponent<Rigidbody>().velocity = m_CurrentLaunchForce * m_FireTransform.forward; 
+            shellInstance.velocity = m_CurrentLaunchForce * m_FireTransform.forward; 
 
             // Change the clip to the firing clip and play it.
             m_ShootingAudio.clip = m_FireClip;
@@ -115,7 +147,7 @@ namespace Complete
         {
             //
             // Set the fired flag so only Fire is only called once.
-            m_Fired = true;
+            m_NPCSpawned = true;
 
             // Create an instance of the shell and store a reference to it's rigidbody.
             EnemyManager npcInstance =

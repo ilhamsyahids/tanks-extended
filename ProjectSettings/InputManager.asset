@@ -917,3 +917,35 @@ InputManager:
     type: 2
     axis: 5
     joyNum: 0
+  - serializedVersion: 3
+    m_Name: FireSpawn1
+    descriptiveName: To Spawn NPC for P1
+    descriptiveNegativeName: 
+    negativeButton: 
+    positiveButton: q
+    altNegativeButton: 
+    altPositiveButton: 
+    gravity: 1000
+    dead: 0.001
+    sensitivity: 1000
+    snap: 0
+    invert: 0
+    type: 0
+    axis: 0
+    joyNum: 0
+  - serializedVersion: 3
+    m_Name: FireSpawn2
+    descriptiveName: To spawn NPC for P2
+    descriptiveNegativeName: 
+    negativeButton: 
+    positiveButton: /
+    altNegativeButton: 
+    altPositiveButton: 
+    gravity: 1000
+    dead: 0.001
+    sensitivity: 1000
+    snap: 0
+    invert: 0
+    type: 0
+    axis: 0
+    joyNum: 0

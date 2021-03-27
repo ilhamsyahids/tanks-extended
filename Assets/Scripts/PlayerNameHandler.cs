@@ -3,15 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 public class PlayerNameHandler : MonoBehaviour
 {
-    public static string playerName;
+    public string playerName;
     public static string map;
     public static string weapon;
     public GameObject NameInputField;
     public GameObject MapDropdown;
     public GameObject WeaponDropdown;
+
+    void Awake()
+    {
+       DontDestroyOnLoad(this.gameObject);
+    }
+
+    private void Start()
+    {
+        playerName = new string(Enumerable.Repeat("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 5)
+                                            .Select(s => s[Random.Range(0, s.Length)]).ToArray());
+        NameInputField.GetComponent<TMP_InputField>().text = playerName;
+    }
 
     public void StoreName()
     {

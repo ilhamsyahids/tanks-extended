@@ -16,6 +16,7 @@ public class NetworkManagerTanks : NetworkManager
         if (!m_GameManager.GameStart)
             base.OnServerConnect(conn);
     }
+
     public override void OnServerAddPlayer(NetworkConnection conn)
     {
         // add player at correct spawn position
@@ -28,8 +29,9 @@ public class NetworkManagerTanks : NetworkManager
 
         player = Instantiate(playerPrefab, m_spawnPoint[numPlayers].position, m_spawnPoint[numPlayers].rotation) as GameObject;
         TankManager tankManager = player.GetComponent<TankManager>();
+        string playerName = FindObjectOfType<PlayerNameHandler>().playerName;
         tankManager.m_PlayerNumber = numPlayers + 1;
-        tankManager.Setup(m_spawnPoint[numPlayers], Random.ColorHSV(0f, 1f, 0.9f, 1f, 1f, 1f));
+        tankManager.Setup(playerName, Random.ColorHSV(0f, 1f, 0.9f, 1f, 1f, 1f));
         //if (numPlayers == 0)
         //{
         //    player = Instantiate(playerPrefab, m_spawnPoint1.position, m_spawnPoint1.rotation) as GameObject;

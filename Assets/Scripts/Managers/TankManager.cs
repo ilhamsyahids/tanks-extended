@@ -7,10 +7,12 @@ using Mirror;
 public class TankManager : NetworkBehaviour
 {
     [SyncVar(hook = nameof(SyncPlayerColor))] private Color PlayerColor;
+    [SyncVar(hook = nameof(SyncPlayerName))] private string PlayerName;
+
     //[SyncVar(hook = nameof(SyncSpawnPoint))]
     public Transform m_SpawnPoint;
 
-    [HideInInspector] [SyncVar] public string m_PlayerName;
+    //[HideInInspector] [SyncVar] public string m_PlayerName;
     [HideInInspector] [SyncVar] public int m_PlayerNumber;
     [HideInInspector] [SyncVar] public string m_ColoredPlayerText;
     [HideInInspector] [SyncVar(hook = nameof(SyncWins))] private int m_Wins;
@@ -33,6 +35,12 @@ public class TankManager : NetworkBehaviour
         set { CmdIsReady(value); }
     }
 
+    public string playerName
+    {
+        get { return PlayerName; }
+        set { CmdIsPlayerName(value); }
+    }
+
     public override void OnStartServer()
     {
         Setup();
@@ -48,28 +56,33 @@ public class TankManager : NetworkBehaviour
     private void Setup()
     {
         SyncPlayerColor(PlayerColor, PlayerColor);
+        SyncPlayerName(PlayerName, PlayerName);
         m_isReady = false;
         m_Movement = gameObject.GetComponent<TankMovement>();
         m_Shooting = gameObject.GetComponent<TankShooting>();
         m_CanvasGameObject = gameObject.GetComponentInChildren<Canvas>().gameObject;
         m_Movement.m_PlayerNumber = 1;
         m_Shooting.m_PlayerNumber = 1;
-        if (m_PlayerNumber == 1)
-        {
-            m_PlayerName = PlayerNameHandler.playerName;
-            m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">" + m_PlayerName + "</color>";
-        }
-        else
-        {
-            m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">PLAYER " + m_PlayerNumber + "</color>";
-        }
+        //m_PlayerName = PlayerNameHandler.playerName;
+
+        m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">" + PlayerName + "</color>";
+        //m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">PLAYER " + m_PlayerNumber + "</color>";
         m_SpawnPoint = GameObject.Find("SpawnPoint" + m_PlayerNumber).GetComponent<Transform>();
     }
 
-    public void Setup(Transform spawnPoint, Color color)
+    private void SyncPlayerName(string OldValue, string NewValue)
+    {
+        PlayerName = NewValue;
+        //m_PlayerName = NewValue;
+        m_ColoredPlayerText = "<color=#" + ColorUtility.ToHtmlStringRGB(PlayerColor) + ">" + PlayerName + "</color>";
+    }
+
+    public void Setup(String playerName, Color color)
     {
         SyncPlayerColor(PlayerColor, color);
+        //SyncPlayerName(PlayerName, playerName);
     }
+
     public void DisableControl()
     {
         m_Movement.enabled = false;
@@ -118,6 +131,12 @@ public class TankManager : NetworkBehaviour
         m_Wins = NewValue;
     }
 
+
+    [Command]
+    private void CmdIsPlayerName(string value)
+    {
+        SyncPlayerName(PlayerName, value);
+    }
 
     [Command]
     private void CmdIsReady(bool value)

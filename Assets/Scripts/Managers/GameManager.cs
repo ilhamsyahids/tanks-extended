@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public int m_NumRoundsToWin = 2;
     public float m_StartDelay = 3f;
     public float m_EndDelay = 3f;
-    public int m_MaxNumPlayers = 2;
+    public int m_MaxNumPlayers = 3;
     public int m_MinNumPlayers = 2;
     public CameraControl m_CameraControl;
     public Text m_MessageText;
@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
     {
         m_PlayerOneWeapon = PlayerNameHandler.weapon;
         m_MapSelected = PlayerNameHandler.map;
-        m_PlayerOneName = PlayerNameHandler.playerName;
+        m_PlayerOneName = FindObjectOfType<PlayerNameHandler>().playerName;
 
         m_StartWait = new WaitForSeconds(m_StartDelay);
         m_EndWait = new WaitForSeconds(m_EndDelay);
@@ -264,6 +264,7 @@ public class GameManager : MonoBehaviour
     public void IsReadyButtonAction()
     {
         LocalPlayer.isReady = true;
+        LocalPlayer.playerName = FindObjectOfType<PlayerNameHandler>().playerName;
     }
 
     public void DisconnectButtonAction()

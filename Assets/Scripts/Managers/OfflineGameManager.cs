@@ -36,7 +36,7 @@ namespace Complete
 
             m_PlayerOneWeapon = PlayerNameHandler.weapon;
             m_MapSelected = PlayerNameHandler.map;
-            m_PlayerOneName = PlayerNameHandler.playerName;
+            m_PlayerOneName = FindObjectOfType<PlayerNameHandler>().playerName;
             SpawnAllTanks();
             SetCameraTargets();
 
